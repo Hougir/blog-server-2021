@@ -32,7 +32,7 @@ public class BlogController {
         String process = "条件查询带分页";
         log.info("{} 入参：body={}", process, JSON.toJSONString(pageBo));
         PageVo<BlogVo> page = blogService.findAllAndPage(pageBo);
-        log.info("{} 出参：body={}", process, JSON.toJSONString(page));
+        //log.info("{} 出参：body={}", process, JSON.toJSONString(page));
         return R.ok(page);
     }
 

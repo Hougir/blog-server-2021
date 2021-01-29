@@ -47,7 +47,7 @@ public class BlogService {
             Predicate[] pred = new Predicate[predicates.size()];
             return cb.and(predicates.toArray(pred));
         }, PageRequest.of(pageBo.getPage() - 1, pageBo.getSize()));
-        log.info("{} 出参：all={}", process, JSON.toJSONString(all));
+        //log.info("{} 出参：all={}", process, JSON.toJSONString(all));
         PageVo<BlogVo> pageVo = new PageVo<>();
         pageVo.setPage(all.getTotalPages());
         pageVo.setSize(all.getSize());
@@ -69,7 +69,7 @@ public class BlogService {
                 }
         ).filter(c-> CommUtils.isNotNull(c)).collect(Collectors.toList());
         pageVo.setItems(reslut);
-        log.info("{} 最终结果：body={}", process, JSON.toJSONString(pageVo));
+        //log.info("{} 最终结果：body={}", process, JSON.toJSONString(pageVo));
         return pageVo;
     }
 

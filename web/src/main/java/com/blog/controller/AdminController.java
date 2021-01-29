@@ -14,10 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -130,5 +127,20 @@ public class AdminController {
         TUser member = userservice.getById(memberId);
         log.info("TUser====> {}", JSON.toJSONString(member));
         return R.ok(member);
+    }
+
+    @ApiOperation(value = "登出 ",produces = "application/json; charset=utf-8")
+    @GetMapping("/api/admin/user/logout")
+    public @ResponseBody R logout(@RequestHeader("token") String token){
+        log.info("logout: {}",token);
+        boolean checkToken = JwtUtils.checkToken(token);
+        if (!checkToken) return R.error().message("暂未登录");
+        //调用jwt工具类的方法。根据request对象获取头信息，返回用户id
+        //Long memberId = JwtUtils.getMemberIdByJwtToken(request);
+        //if (null == memberId) return R.error().message("暂未登录");
+        //查询数据库根据用户id获取用户信息
+        //删除redis缓存token值
+        log.info("logout====>");
+        return R.ok();
     }
 }
