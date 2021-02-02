@@ -11,4 +11,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
  */
 public interface UserRepository extends JpaRepository<TUser,Long>, JpaSpecificationExecutor<TUser> {
     TUser findByOpenid(String openid);
+
+    TUser findByUsernameAndPassword(String username, String code);
 }

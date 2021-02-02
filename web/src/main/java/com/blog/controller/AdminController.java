@@ -1,6 +1,7 @@
 package com.blog.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.blog.domain.bo.AuthBo;
 import com.blog.domain.entity.TUser;
 import com.blog.service.Userservice;
 import com.blog.util.ConstantWxUtils;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,6 +33,9 @@ import java.util.HashMap;
 @Controller
 @Api(description = "博客后台管理")
 public class AdminController {
+
+    static final String REDIRECT_URL = "redirect:http://localhost:8888";
+
     @Autowired
     private Userservice userservice;
     //2 获取扫描人信息，添加数据
@@ -95,7 +100,7 @@ public class AdminController {
                 member.setCreateTime(date);
                 userservice.save(member);
                 String jwtToken = JwtUtils.getJwtToken(member.getId(), member.getNickname());
-                return "redirect:http://localhost:8888?token="+jwtToken;
+                return REDIRECT_URL + "?token="+jwtToken;
             }
             if (!headimgurl.equals(member.getAvatar())){
                 member.setAvatar(headimgurl);
@@ -108,11 +113,11 @@ public class AdminController {
             //使用jwt根据member对象生成token字符串
             String jwtToken = JwtUtils.getJwtToken(member.getId(), member.getNickname());
             //最后：返回首页面，通过路径传递token字符串
-            return "redirect:http://localhost:8888?token="+jwtToken;
+            return REDIRECT_URL + "?token="+jwtToken;
         }catch(Exception e) {
             log.info("20001,登录失败");
             e.printStackTrace();
-            return "redirect:http://localhost:8888?msg=faild";
+            return REDIRECT_URL + "/login";
         }
     }
 
@@ -129,16 +134,27 @@ public class AdminController {
         return R.ok(member);
     }
 
+    @ApiOperation(value = "账号密码登录",produces = "application/json; charset=utf-8")
+    @PostMapping("/api/admin/user/login")
+    public @ResponseBody R  login(@RequestBody AuthBo bo){
+        log.info("login: bo==> {}",JSON.toJSONString(bo));
+        String token = userservice.login(bo);
+        log.info("token====> {}", token);
+        if (StringUtils.isEmpty(token)) return R.error().message("账号/密码错误");
+        return R.ok(token);
+    }
     @ApiOperation(value = "登出 ",produces = "application/json; charset=utf-8")
     @GetMapping("/api/admin/user/logout")
     public @ResponseBody R logout(@RequestHeader("token") String token){
         log.info("logout: {}",token);
-        boolean checkToken = JwtUtils.checkToken(token);
-        if (!checkToken) return R.error().message("暂未登录");
-        //调用jwt工具类的方法。根据request对象获取头信息，返回用户id
-        //Long memberId = JwtUtils.getMemberIdByJwtToken(request);
-        //if (null == memberId) return R.error().message("暂未登录");
-        //查询数据库根据用户id获取用户信息
+
+        boolean checkToken = false;
+        try {
+            checkToken = JwtUtils.checkToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return R.error();
+        }
         //删除redis缓存token值
         log.info("logout====>");
         return R.ok();

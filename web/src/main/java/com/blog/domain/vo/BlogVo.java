@@ -31,4 +31,5 @@ public class BlogVo {
     private String content;
     private Long viewsCount;
     private Long commentsCount;
+    private boolean published;
 }

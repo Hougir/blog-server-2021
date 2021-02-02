@@ -5,6 +5,7 @@ import com.blog.domain.bo.BlogBo;
 import com.blog.domain.entity.TBlog;
 import com.blog.domain.vo.BlogVo;
 import com.blog.service.BlogService;
+import com.blog.util.JwtUtils;
 import com.blog.util.PageBo;
 import com.blog.util.PageVo;
 import com.blog.util.R;
@@ -28,10 +29,10 @@ public class BlogController {
 
     @ApiOperation(value = "条件查询带分页",produces = "application/json; charset=utf-8")
     @PostMapping("/post/list")
-    public R list(@RequestBody PageBo<TBlog> pageBo){
+    public R list(@RequestBody PageBo<TBlog> pageBo,@RequestHeader(value = "token",required = false)String token){
         String process = "条件查询带分页";
-        log.info("{} 入参：body={}", process, JSON.toJSONString(pageBo));
-        PageVo<BlogVo> page = blogService.findAllAndPage(pageBo);
+        log.info("{} 入参：body={},token={}", process, JSON.toJSONString(pageBo),token);
+        PageVo<BlogVo> page = blogService.findAllAndPage(pageBo,token);
         //log.info("{} 出参：body={}", process, JSON.toJSONString(page));
         return R.ok(page);
     }
@@ -45,4 +46,34 @@ public class BlogController {
         log.info("{} 出参：blog={}", process, JSON.toJSONString(blog));
         return R.ok(blog);
     }
+    @ApiOperation(value = "保存",produces = "application/json; charset=utf-8")
+    @PostMapping("/articles/save")
+    public R save(@RequestBody TBlog blog,@RequestHeader("token")String token){
+        String process = "保存";
+        log.info("{} 入参：blog={},token={}", process, JSON.toJSONString(blog),token);
+        if (!JwtUtils.checkToken(token)) return R.error().message("未登录").code(403);
+        R result = blogService.save(blog);
+        log.info("{} 出参：result={}", process, result);
+        return result;
+    }
+    @ApiOperation(value = "删除",produces = "application/json; charset=utf-8")
+    @DeleteMapping("/articles/delById/{id}")
+    public R delById(@RequestHeader("token")String token,@PathVariable("id")Long id){
+        String process = "删除";
+        log.info("{} 入参：id={},token={}", process, id,token);
+        if (!JwtUtils.checkToken(token)) return R.error().message("未登录").code(403);
+        R result = blogService.delById(id);
+        log.info("{} 出参：result={}", process, result);
+        return result;
+    }
+
+
+    @ApiOperation(value = "焦点",produces = "application/json; charset=utf-8")
+    @GetMapping("/focus/list")
+    public R focusList(){
+        List<BlogVo> result = blogService.getFocusList();
+        log.info("{} 出参：result={}", result);
+        return R.ok(result);
+    }
+
 }
