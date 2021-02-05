@@ -2,14 +2,21 @@ package com.blog.service;
 
 import com.alibaba.fastjson.JSON;
 import com.blog.domain.bo.BlogBo;
+import com.blog.domain.bo.CommentBo;
+import com.blog.domain.entity.Comment;
 import com.blog.domain.entity.TBlog;
 import com.blog.domain.vo.BlogVo;
+import com.blog.domain.vo.CommentVo;
+import com.blog.enums.ResultMsg;
 import com.blog.mapper.BlogReponsitory;
+import com.blog.mapper.CommentRepository;
 import com.blog.util.*;
+import com.netflix.hystrix.contrib.javanica.utils.CommonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -33,6 +40,9 @@ import java.util.stream.Collectors;
 public class BlogService {
     @Autowired
     private BlogReponsitory blogReponsitory;
+
+    @Autowired
+    private CommentRepository commentRepository;
 
 
     public PageVo<BlogVo> findAllAndPage(PageBo<TBlog> pageBo,String token) {
@@ -76,7 +86,7 @@ public class BlogService {
         return pageVo;
     }
 
-    public TBlog getBlogById(Long id) {
+    public BlogVo getBlogById(Long id) {
         Optional<TBlog> byId = blogReponsitory.findById(id);
         TBlog blog = byId.get();
         if (ObjectUtils.isEmpty(blog)) return null;
@@ -85,7 +95,19 @@ public class BlogService {
             blogReponsitory.saveAndFlush(blog);
         }).start();
         log.info("{} 数据库查询结果：blog={}", JSON.toJSONString(blog));
-        return blog;
+        BlogVo blogVo = new BlogVo();
+        blogVo.setId(blog.getId());
+        blogVo.setTop(blog.getIsTop());
+        blogVo.setBanner(blog.getBanner());
+        blogVo.setHot(blog.getIsHot());
+        blogVo.setPubTime(DateUtil.formatDate(blog.getUpdateTime(),DateUtil.FMT2));
+        blogVo.setTitle(blog.getTitle());
+        blogVo.setSummary(blog.getSummary());
+        blogVo.setContent(blog.getContent());
+        blogVo.setViewsCount(blog.getViewsCount());
+        blogVo.setCommentsCount(blog.getCommentsCount());
+        blogVo.setPublished(blog.getPublished());
+        return blogVo;
     }
 
     public R save(TBlog blog) {
@@ -99,18 +121,18 @@ public class BlogService {
         }
         blog.setUpdateTime(date);
         TBlog tBlog = blogReponsitory.saveAndFlush(blog);
-        if (null == tBlog) return R.error().message("保存失败");
+        if (null == tBlog) return R.error().message(ResultMsg.SAVE_FAILED);
         return R.ok();
     }
 
 
     public R delById(Long id) {
-        if (ObjectUtils.isEmpty(id)) return R.error().message("参数不能为空");
+        if (ObjectUtils.isEmpty(id)) return R.error().message(ResultMsg.PARMS_NOT_NULL);
         try {
             blogReponsitory.deleteById(id);
         } catch (Exception e) {
             e.printStackTrace();
-            return R.error().message("删除失败");
+            return R.error().message(ResultMsg.FAILED_TO_DELETE);
         }
         return R.ok();
     }
@@ -145,5 +167,65 @@ public class BlogService {
                 }).collect(Collectors.toList());
 
         return blogVos.subList(0,5);
+    }
+
+    public R comment(Comment comment) {
+        if (null == comment || null == comment.getEmail() || null == comment.getContent()) return R.error().message(ResultMsg.PARMS_NOT_NULL);
+        comment.setUnread(true);
+        comment.setCreateTime(new Date());
+        Comment save = commentRepository.save(comment);
+        return R.ok();
+    }
+
+    public R commentList(PageBo<CommentBo> bo,String token) {
+        if (!JwtUtils.checkToken(token)) return R.error().message(ResultMsg.NOT_LOGIN).code(403);
+
+        List<Sort.Order> orderList = new ArrayList<>();
+        orderList.add(Sort.Order.desc("unread"));
+        orderList.add(Sort.Order.desc("createTime"));
+        Page<Comment> all = commentRepository.findAll((r, cq, cb) ->{
+            List<Predicate> predicates = new ArrayList<>();
+            if (bo.getParam().isUnread()){
+                predicates.add(cb.equal(r.get("unread").as(Boolean.class), true));
+            }
+            Predicate[] pred = new Predicate[predicates.size()];
+            return cb.and(predicates.toArray(pred));
+        }, PageRequest.of(bo.getPage() - 1, bo.getSize(),Sort.by(orderList.toArray(new Sort.Order[orderList.size()]))));
+        PageVo<CommentVo> pageVo = new PageVo<>();
+        pageVo.setPage(all.getTotalPages());
+        pageVo.setSize(all.getSize());
+        pageVo.setTotal(all.getTotalElements());
+        pageVo.setHasNextPage(all.hasNext());
+        List<CommentVo> reslut = all.getContent().stream().map(c-> {
+            CommentVo commentVo = new CommentVo();
+                    commentVo.setId(c.getId());
+                    commentVo.setCreateTime(DateUtil.formatDate(c.getCreateTime(),DateUtil.FMT2));
+                    commentVo.setContent(c.getContent());
+                    commentVo.setEmail(c.getEmail());
+                    commentVo.setUnread(c.getUnread());
+                    return commentVo;
+                }
+        ).filter(c-> CommUtils.isNotNull(c)).collect(Collectors.toList());
+        pageVo.setItems(reslut);
+        log.info("最终结果：pageVo={}", JSON.toJSONString(pageVo));
+        return R.ok(pageVo);
+    }
+
+    public R haveRead(Long id, String token) {
+        if (!JwtUtils.checkToken(token)) return R.error().message(ResultMsg.NOT_LOGIN).code(403);
+        if (ObjectUtils.isEmpty(id)) return R.error().message(ResultMsg.PARMS_NOT_NULL);
+        Comment comment = commentRepository.findById(id).get();
+        if (comment.getUnread()){
+            comment.setUnread(false);
+        }
+        comment = commentRepository.saveAndFlush(comment);
+        return R.ok();
+    }
+
+    public R delCommentById(Long id, String token) {
+        if (!JwtUtils.checkToken(token)) return R.error().message(ResultMsg.NOT_LOGIN).code(403);
+        if (ObjectUtils.isEmpty(id)) return R.error().message(ResultMsg.PARMS_NOT_NULL);
+        commentRepository.deleteById(id);
+        return R.ok();
     }
 }

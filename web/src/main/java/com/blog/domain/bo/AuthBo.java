@@ -35,4 +35,9 @@ public class AuthBo implements Serializable {
 	 * 短信验证码
 	 */
 	private String smsCode;
+
+	/**
+	 * 手机号码
+	 */
+	private String phone;
 }

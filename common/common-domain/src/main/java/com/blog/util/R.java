@@ -1,5 +1,6 @@
 package com.blog.util;
 
+import com.blog.enums.ResultMsg;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -60,6 +61,11 @@ public class R {
 
     public R message(String message){
         this.setMessage(message);
+        return this;
+    }
+
+    public R message(ResultMsg resultMsg){
+        this.setMessage(resultMsg.getMsg());
         return this;
     }
 

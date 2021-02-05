@@ -1,8 +1,12 @@
 package com.blog.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.blog.comm.CacheComponent;
 import com.blog.domain.bo.AuthBo;
 import com.blog.domain.entity.TUser;
+import com.blog.enums.CacheKey;
+import com.blog.enums.CommConst;
+import com.blog.enums.ResultMsg;
 import com.blog.service.Userservice;
 import com.blog.util.ConstantWxUtils;
 import com.blog.util.HttpClientUtils;
@@ -15,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,10 +39,21 @@ import java.util.HashMap;
 @Api(description = "博客后台管理")
 public class AdminController {
 
-    static final String REDIRECT_URL = "redirect:http://localhost:8888";
+    static final String REDIRECT_URL = "redirect:http://localhost/#/admin/wx/";
 
     @Autowired
     private Userservice userservice;
+
+    @Autowired
+    private CacheComponent cacheComponent;
+
+    @ApiOperation(value = "发送短信验证码",produces = "application/json; charset=utf-8")
+    @GetMapping("/api/login/sendSms/{phone}")
+    public @ResponseBody R sendSms(@PathVariable("phone") String phone){
+        log.info("发送短信phone：{}",phone);
+        return userservice.sendSms(phone);
+    }
+
     //2 获取扫描人信息，添加数据
     @GetMapping("/api/ucenter/wx/callback")
     public String callback(String code, String state) {
@@ -100,7 +116,8 @@ public class AdminController {
                 member.setCreateTime(date);
                 userservice.save(member);
                 String jwtToken = JwtUtils.getJwtToken(member.getId(), member.getNickname());
-                return REDIRECT_URL + "?token="+jwtToken;
+                cacheComponent.add(CacheKey.LOAN_USER_LOGIN_TOKEN.getKey(member.getId().toString()),jwtToken, CommConst.EXPIRED_TIME);
+                return REDIRECT_URL + jwtToken;
             }
             if (!headimgurl.equals(member.getAvatar())){
                 member.setAvatar(headimgurl);
@@ -112,24 +129,27 @@ public class AdminController {
             userservice.save(member);
             //使用jwt根据member对象生成token字符串
             String jwtToken = JwtUtils.getJwtToken(member.getId(), member.getNickname());
+            //token存入redis
+            cacheComponent.add(CacheKey.LOAN_USER_LOGIN_TOKEN.getKey(member.getId().toString()),jwtToken, CommConst.EXPIRED_TIME);
             //最后：返回首页面，通过路径传递token字符串
-            return REDIRECT_URL + "?token="+jwtToken;
+            return REDIRECT_URL + jwtToken;
         }catch(Exception e) {
-            log.info("20001,登录失败");
-            e.printStackTrace();
-            return REDIRECT_URL + "/login";
+            log.error("登录失败,{}",e);
+            return "redirect:http://localhost/";
         }
     }
 
     @ApiOperation(value = "获取登录者信息",produces = "application/json; charset=utf-8")
-    @GetMapping("/api/admin/user/getMemberInfo")
-    public @ResponseBody R  getMemberInfo(HttpServletRequest request){
-        log.info("getMemberInfo");
-        //调用jwt工具类的方法。根据request对象获取头信息，返回用户id
-        Long memberId = JwtUtils.getMemberIdByJwtToken(request);
-        if (null == memberId) return R.error().message("暂未登录");
+    @GetMapping("/api/admin/user/getMemberInfo/{token}")
+    public @ResponseBody R  getMemberInfo(@PathVariable("token")String token){
+        log.info("getMemberInfo=====>token= {}",token);
+        //调用jwt工具类的方法，返回用户id
+        Long memberId = JwtUtils.getMemberIdByJwtToken(token);
+        if (ObjectUtils.isEmpty(memberId)) return R.error().message(ResultMsg.NOT_LOGIN).code(403);
         //查询数据库根据用户id获取用户信息
         TUser member = userservice.getById(memberId);
+        //把用户信息存入redis
+        cacheComponent.add(CacheKey.LOAN_USER_LOGIN_TOKEN_USER.getKey(token),member,CommConst.EXPIRED_TIME);
         log.info("TUser====> {}", JSON.toJSONString(member));
         return R.ok(member);
     }
@@ -138,25 +158,14 @@ public class AdminController {
     @PostMapping("/api/admin/user/login")
     public @ResponseBody R  login(@RequestBody AuthBo bo){
         log.info("login: bo==> {}",JSON.toJSONString(bo));
-        String token = userservice.login(bo);
-        log.info("token====> {}", token);
-        if (StringUtils.isEmpty(token)) return R.error().message("账号/密码错误");
-        return R.ok(token);
+        R r = userservice.login(bo);
+        log.info("token====> {}", r.getData());
+        return r;
     }
-    @ApiOperation(value = "登出 ",produces = "application/json; charset=utf-8")
-    @GetMapping("/api/admin/user/logout")
-    public @ResponseBody R logout(@RequestHeader("token") String token){
-        log.info("logout: {}",token);
-
-        boolean checkToken = false;
-        try {
-            checkToken = JwtUtils.checkToken(token);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return R.error();
-        }
-        //删除redis缓存token值
-        log.info("logout====>");
-        return R.ok();
+    @ApiOperation(value = "登出",produces = "application/json; charset=utf-8")
+    @GetMapping("/api/admin/user/logout/{token}")
+    public @ResponseBody R logout(@PathVariable("token") String token){
+        log.info("登出:{}",token);
+        return userservice.logout(token);
     }
 }

@@ -154,7 +154,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+            <!--<plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>${docker.plugin.version}</version>
@@ -168,8 +168,8 @@
                 </executions>
                 <configuration>
                     <imageName>${docker.image.prefix}/${project.artifactId}</imageName>
-                    <dockerDirectory>${project.basedir}/src/main/docker/${build_profile}</dockerDirectory>
-                    <!--<dockerHost>${docker.host}</dockerHost>-->
+                    <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
+                    &lt;!&ndash;<dockerHost>${docker.host}</dockerHost>&ndash;&gt;
                     <resources>
                         <resource>
                             <targetPath>/</targetPath>
@@ -178,7 +178,7 @@
                         </resource>
                     </resources>
                 </configuration>
-            </plugin>
+            </plugin>-->
         </plugins>
     </build>
 

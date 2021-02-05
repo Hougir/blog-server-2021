@@ -62,7 +62,7 @@
         <freemarker.version>2.3.25-incubating</freemarker.version>
 
         <docker.plugin.version>1.0.0</docker.plugin.version>
-        <docker.image.prefix>saas-market</docker.image.prefix>
+        <docker.image.prefix>blog-server-2021</docker.image.prefix>
 
         <!--<docker.host>http://106.14.36.118:2375</docker.host>-->
 
