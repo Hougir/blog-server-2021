@@ -148,7 +148,10 @@ public class AdminController {
         if (ObjectUtils.isEmpty(memberId)) return R.error().message(ResultMsg.NOT_LOGIN).code(403);
         //查询数据库根据用户id获取用户信息
         TUser member = userservice.getById(memberId);
+        //验证token是否过期
+        String redisToken = (String)cacheComponent.get(CacheKey.LOAN_USER_LOGIN_TOKEN.getKey(member.getId().toString()));
         //把用户信息存入redis
+        if (StringUtils.isEmpty(redisToken)) return R.error().message(ResultMsg.LOGINH_HAS_EXPIRED).code(401);
         cacheComponent.add(CacheKey.LOAN_USER_LOGIN_TOKEN_USER.getKey(token),member,CommConst.EXPIRED_TIME);
         log.info("TUser====> {}", JSON.toJSONString(member));
         return R.ok(member);

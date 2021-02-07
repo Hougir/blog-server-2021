@@ -18,6 +18,7 @@ public enum ResultMsg {
     SAVE_FAILED("保存失败"),
     MESSAGE_FAILED_TO_SEND("短信发送失败"),
     NOT_LOGIN("未登录"),
+    LOGINH_HAS_EXPIRED("登录已过期"),
     SMS_VERIFICATION_CODE_ERROR("短信验证码错误"),
     MESSAGE_HAS_SENT_PLEASE_TRY_AGAIN_IN_ONE_MINUTE("短信已发送,请一分钟后再试"),
     ;
