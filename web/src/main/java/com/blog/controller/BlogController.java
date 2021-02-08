@@ -103,7 +103,7 @@ public class BlogController {
     @ApiOperation(value = "删除留言",produces = "application/json; charset=utf-8")
     @PostMapping("/about/delCommentById/{id}")
     public R delCommentById(@RequestHeader("token")String token,@PathVariable("id")Long id){
-        log.info("{} 入参：删除留言id={},token={}", "查询留言",id,token);
+        log.info("{} 入参：删除留言id={},token={}", "删除留言",id,token);
         return blogService.delCommentById(id,token);
     }
 

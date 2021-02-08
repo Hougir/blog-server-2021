@@ -224,7 +224,14 @@ public class BlogService {
 
     public R delCommentById(Long id, String token) {
         if (!JwtUtils.checkToken(token)) return R.error().message(ResultMsg.NOT_LOGIN).code(403);
-        if (ObjectUtils.isEmpty(id)) return R.error().message(ResultMsg.PARMS_NOT_NULL);
+        if (CommUtils.isNull(id)) return R.error().message(ResultMsg.PARMS_NOT_NULL);
+        //先把该评论有关子级关联删除
+        List<Comment> comments = commentRepository.findAllByParentCommentId(id);
+        comments = comments.stream().map(c->{
+            c.setParentCommentId(null);
+            return c;
+        }).filter(c->CommUtils.isNotNull(c)).collect(Collectors.toList());
+        commentRepository.saveAll(comments);
         commentRepository.deleteById(id);
         return R.ok();
     }

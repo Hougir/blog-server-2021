@@ -8,23 +8,16 @@ import com.blog.enums.CacheKey;
 import com.blog.enums.CommConst;
 import com.blog.enums.ResultMsg;
 import com.blog.service.Userservice;
-import com.blog.util.ConstantWxUtils;
-import com.blog.util.HttpClientUtils;
-import com.blog.util.JwtUtils;
-import com.blog.util.R;
+import com.blog.util.*;
 import com.google.gson.Gson;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -151,7 +144,7 @@ public class AdminController {
         //验证token是否过期
         String redisToken = (String)cacheComponent.get(CacheKey.LOAN_USER_LOGIN_TOKEN.getKey(member.getId().toString()));
         //把用户信息存入redis
-        if (StringUtils.isEmpty(redisToken)) return R.error().message(ResultMsg.LOGINH_HAS_EXPIRED).code(401);
+        if (CommUtils.isNull(redisToken)) return R.error().message(ResultMsg.LOGINH_HAS_EXPIRED).code(401);
         cacheComponent.add(CacheKey.LOAN_USER_LOGIN_TOKEN_USER.getKey(token),member,CommConst.EXPIRED_TIME);
         log.info("TUser====> {}", JSON.toJSONString(member));
         return R.ok(member);
