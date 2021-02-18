@@ -21,6 +21,7 @@ public enum ResultMsg {
     LOGINH_HAS_EXPIRED("登录已过期"),
     SMS_VERIFICATION_CODE_ERROR("短信验证码错误"),
     MESSAGE_HAS_SENT_PLEASE_TRY_AGAIN_IN_ONE_MINUTE("短信已发送,请一分钟后再试"),
+    INVALID_MOBILE_PHONE_NUMBER("手机号码不合法"),
     ;
 
 

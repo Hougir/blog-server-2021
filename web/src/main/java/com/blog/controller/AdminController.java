@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author huang hao
@@ -34,6 +36,7 @@ public class AdminController {
 
     static final String REDIRECT_URL = "redirect:http://localhost/#/admin/wx/";
 
+    static final String REGEXP = "^((13[0-9])|(15[^4,\\D])|(18[0,3-9]))\\d{8}$";
     @Autowired
     private Userservice userservice;
 
@@ -44,6 +47,11 @@ public class AdminController {
     @GetMapping("/api/login/sendSms/{phone}")
     public @ResponseBody R sendSms(@PathVariable("phone") String phone){
         log.info("发送短信phone：{}",phone);
+        Pattern pattern = Pattern.compile(REGEXP);
+        // 忽略大小写的写法
+        // Pattern pat = Pattern.compile(regEx, Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(phone);
+        if (!matcher.matches()) return R.error().message(ResultMsg.INVALID_MOBILE_PHONE_NUMBER);
         return userservice.sendSms(phone);
     }
 

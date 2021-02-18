@@ -3,6 +3,7 @@ package com.blog.domain.bo;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
+import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 
 @Data
@@ -39,5 +40,6 @@ public class AuthBo implements Serializable {
 	/**
 	 * 手机号码
 	 */
+	@Pattern(regexp="^((13[0-9])|(15[^4,\\D])|(18[0,3-9]))\\d{8}$", message="手机号格式不正确")
 	private String phone;
 }
