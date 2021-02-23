@@ -83,7 +83,7 @@ cloud:
 #################################  rabbitmq 配置  ##############################################################
 spring.rabbitmq:
   virtual-host: /
-  host: 1.15.57.153
+  host: localhost
   port: 5672
   username: guest
   password: guest
