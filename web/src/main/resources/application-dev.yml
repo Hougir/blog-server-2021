@@ -47,7 +47,7 @@ spring:
     # 合并多个DruidDataSource的监控数据
     # useGlobalDataSourceStat: true
   redis:
-    host: 192.168.40.88
+    host: 1.15.57.153
     port: 6379
     #password: 123456
     # 数据库索引（默认为0）
