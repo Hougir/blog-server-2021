@@ -33,8 +33,11 @@ public class Userservice {
     @Autowired
     private CacheComponent cacheComponent;
 
+    //@Autowired
+    //private MQChannelSource mqChannelSource;
+
     @Autowired
-    private MQChannelSource mqChannelSource;
+    private MQService mqService;
 
     public TUser getByOpenid(String openid) {
         return userRepository.findByOpenid(openid);
@@ -88,10 +91,13 @@ public class Userservice {
         if (CommUtils.isNotNull(content)) return R.ok().message(ResultMsg.MESSAGE_HAS_SENT_PLEASE_TRY_AGAIN_IN_ONE_MINUTE);
         content = GetGenerateCode.generateCode(6);
         Sms sms = new Sms(phone,content);
-        boolean send = mqChannelSource.blogSmsOutput().send(
+
+
+        /*boolean send = mqChannelSource.blogSmsOutput().send(
                 MessageBuilder.withPayload(sms)
                         .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON).build()
-        );
+        );*/
+        boolean send = mqService.sendSms(sms);
         if (!send) return R.error().message(ResultMsg.MESSAGE_FAILED_TO_SEND);
 
         return R.ok().message(content);

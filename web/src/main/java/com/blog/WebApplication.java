@@ -30,7 +30,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;*/
 @EnableEurekaClient
 @EnableDiscoveryClient*/
 @SpringBootApplication
-@EnableBinding({ MQChannelSource.class })
+//@EnableBinding({ MQChannelSource.class })
 public class WebApplication {
 
     public static void main(String[] args) {
