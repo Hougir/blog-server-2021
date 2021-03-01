@@ -10,7 +10,7 @@ spring:
     name: blog-server-2021-web
   # dev:开发配置、test:测试配置、prod: 发布配置;
   profiles:
-    active: ${config.active:dev}
+    active: ${config.active:prod}
   main:
     allow-bean-definition-overriding: true
   cloud:
