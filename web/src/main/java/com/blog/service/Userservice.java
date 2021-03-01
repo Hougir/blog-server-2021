@@ -1,5 +1,6 @@
 package com.blog.service;
 
+import com.alibaba.fastjson.JSON;
 import com.blog.comm.CacheComponent;
 import com.blog.comm.MQChannelSource;
 import com.blog.domain.bo.AuthBo;
@@ -33,8 +34,8 @@ public class Userservice {
     @Autowired
     private CacheComponent cacheComponent;
 
-    //@Autowired
-    //private MQChannelSource mqChannelSource;
+    @Autowired
+    private MQChannelSource mqChannelSource;
 
     @Autowired
     private MQService mqService;
@@ -92,12 +93,14 @@ public class Userservice {
         content = GetGenerateCode.generateCode(6);
         Sms sms = new Sms(phone,content);
 
-
-        /*boolean send = mqChannelSource.blogSmsOutput().send(
+        log.info("sms===>{}", JSON.toJSONString(sms));
+        boolean send = mqChannelSource.blogSmsOutput().send(
                 MessageBuilder.withPayload(sms)
                         .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON).build()
-        );*/
-        boolean send = mqService.sendSms(sms);
+        );
+
+        log.info("send===>{}", send);
+        //boolean send = mqService.sendSms(sms);
         if (!send) return R.error().message(ResultMsg.MESSAGE_FAILED_TO_SEND);
 
         return R.ok().message(content);

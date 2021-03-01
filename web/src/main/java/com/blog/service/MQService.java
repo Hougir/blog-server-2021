@@ -22,8 +22,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class MQService {
-    //@Autowired
-    //private MQChannelSource mqChannelSource;
+    @Autowired
+    private MQChannelSource mqChannelSource;
 
     @Autowired
     private CacheComponent cacheComponent;
@@ -31,8 +31,12 @@ public class MQService {
    // @Autowired
     //private SmsAPI smsAPI;
 
-    //@StreamListener(MQConst.BLOG_SMS_INPUT)
+    @StreamListener(MQConst.BLOG_SMS_INPUT)
     public void receiveTransactionalMsg(String transactionMsg) {
+
+        System.out.println("收到消息");
+
+
         log.info("收到消息=========> {}", JSON.toJSONString(transactionMsg));
         Sms sms = JSON.parseObject(transactionMsg, Sms.class);
         if (null != sms) {

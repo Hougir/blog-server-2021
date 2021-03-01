@@ -11,9 +11,9 @@ spring:
   # 数据库配置
   datasource:
     # ---------------基本链接信息---------------------------
-    url: jdbc:mysql://47.103.155.11:3306/blog_2021?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT%2B8&useSSL=false
+    url: jdbc:mysql://localhost:3306/blog_2021?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT%2B8&useSSL=false
     username: root
-    password: 123456
+    password: root
     #driver-class-name: com.mysql.jdbc.Driver
     #platform: mysql
     #type: com.alibaba.druid.pool.DruidDataSource
@@ -47,7 +47,7 @@ spring:
     # 合并多个DruidDataSource的监控数据
     # useGlobalDataSourceStat: true
   redis:
-    host: 192.168.40.88
+    host: 47.103.155.11
     port: 6379
     #password: 123456
     # 数据库索引（默认为0）
@@ -74,41 +74,41 @@ wx:
 
 
 
-#  cloud:
-#    # MQ默认Binder
-#    stream:
-#      defaultBinder: rabbit
+  cloud:
+    # MQ默认Binder
+    stream:
+      defaultBinder: rabbit
 
 #################################  rabbitmq 配置  ##############################################################
-#spring.rabbitmq:
-#  virtual-host: /
-#  host: 47.103.155.11
-#  port: 5672
-#  username: guest
-#  password: guest
-#  #消息发送到交换机确认机制,是否确认回调
-#  publisherConfirmType: none
-#  #消息发送到交换机确认机制,是否返回回馈
-#  publisherReturns: false
-#  template.mandatory: true
-#  listener:
-#    concurrency: 5  #最小消息监听线程数
-#    max-concurrency: 50 #最大消息监听线程数
-#    simple:
-#      retry:
-#        max-attempts: 3  #最大重试次数
-#      enabled: true #是否开启消费者重试（为false时关闭消费者重试，这时消费端代码异常会一直重复收到消息）
-#      initial-interval: 5S #重试间隔时间（单位毫秒）
-#      default-requeue-rejected: true #重试次数超过上面的设置之后是否丢弃（false不丢弃时需要写相应代码将该消息加入死信队列）
+spring.rabbitmq:
+  virtual-host: /
+  host: 47.103.155.11
+  port: 5672
+  username: guest
+  password: guest
+  #消息发送到交换机确认机制,是否确认回调
+  publisherConfirmType: none
+  #消息发送到交换机确认机制,是否返回回馈
+  publisherReturns: false
+  template.mandatory: true
+  listener:
+    concurrency: 5  #最小消息监听线程数
+    max-concurrency: 50 #最大消息监听线程数
+    simple:
+      retry:
+        max-attempts: 3  #最大重试次数
+      enabled: true #是否开启消费者重试（为false时关闭消费者重试，这时消费端代码异常会一直重复收到消息）
+      initial-interval: 5S #重试间隔时间（单位毫秒）
+      default-requeue-rejected: true #重试次数超过上面的设置之后是否丢弃（false不丢弃时需要写相应代码将该消息加入死信队列）
 #################################  rabbitmq 配置  ##############################################################
-#spring.cloud.stream.bindings:
-#  blog_sms_output:
-#    destination: BLOG_SMS_TOPIC
-#    content-type: application/json
-#    group: BLOG_SMS_TOPIC
-#  blog_sms_input:
-#    destination: BLOG_SMS_TOPIC
-#    content-type: application/json
-#    group: BLOG_SMS_TOPIC
-#    consumer:
-#      concurrency: 20
+spring.cloud.stream.bindings:
+  blog_sms_output:
+    destination: BLOG_SMS_TOPIC
+    content-type: application/json
+    group: BLOG_SMS_TOPIC
+  blog_sms_input:
+    destination: BLOG_SMS_TOPIC
+    content-type: application/json
+    group: BLOG_SMS_TOPIC
+    consumer:
+      concurrency: 20

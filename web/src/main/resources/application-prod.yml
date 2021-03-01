@@ -11,7 +11,7 @@ spring:
   # 数据库配置
   datasource:
     # ---------------基本链接信息---------------------------
-    url: jdbc:mysql://localhost:3306/blog_2021?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT%2B8&useSSL=false
+    url: jdbc:mysql://47.103.155.11:3306/blog_2021?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT%2B8&useSSL=false
     username: root
     password: root
     #driver-class-name: com.mysql.jdbc.Driver
@@ -47,7 +47,7 @@ spring:
     # 合并多个DruidDataSource的监控数据
     # useGlobalDataSourceStat: true
   redis:
-    host: 1.15.57.153
+    host: 47.103.155.11
     port: 6379
     #password: 123456
     # 数据库索引（默认为0）
@@ -83,7 +83,7 @@ cloud:
 #################################  rabbitmq 配置  ##############################################################
 spring.rabbitmq:
   virtual-host: /
-  host: localhost
+  host: 47.103.155.11
   port: 5672
   username: guest
   password: guest
