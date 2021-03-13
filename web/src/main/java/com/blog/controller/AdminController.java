@@ -136,7 +136,7 @@ public class AdminController {
             return REDIRECT_URL + jwtToken;
         }catch(Exception e) {
             log.error("登录失败,{}",e);
-            return "redirect:http://yellowhao.top/";
+            return "redirect:http://www.yellowhao.top/";
         }
     }
 
