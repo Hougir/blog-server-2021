@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 @Api(description = "博客后台管理")
 public class AdminController {
 
-    static final String REDIRECT_URL = "redirect:http://localhost/#/admin/wx/";
+    static final String REDIRECT_URL = "redirect:http://47.103.155.11/#/admin/wx/";
 
     static final String REGEXP = "^((13[0-9])|(15[^4,\\D])|(18[0,3-9]))\\d{8}$";
     @Autowired
@@ -117,7 +117,7 @@ public class AdminController {
                 member.setCreateTime(date);
                 userservice.save(member);
                 String jwtToken = JwtUtils.getJwtToken(member.getId(), member.getNickname());
-                cacheComponent.add(CacheKey.LOAN_USER_LOGIN_TOKEN.getKey(member.getId().toString()),jwtToken, CommConst.EXPIRED_TIME);
+                cacheComponent.add(CacheKey.BLOG_USER_LOGIN_TOKEN.getKey(member.getId().toString()),jwtToken, CommConst.EXPIRED_TIME);
                 return REDIRECT_URL + jwtToken;
             }
             if (!headimgurl.equals(member.getAvatar())){
@@ -131,12 +131,12 @@ public class AdminController {
             //使用jwt根据member对象生成token字符串
             String jwtToken = JwtUtils.getJwtToken(member.getId(), member.getNickname());
             //token存入redis
-            cacheComponent.add(CacheKey.LOAN_USER_LOGIN_TOKEN.getKey(member.getId().toString()),jwtToken, CommConst.EXPIRED_TIME);
+            cacheComponent.add(CacheKey.BLOG_USER_LOGIN_TOKEN.getKey(member.getId().toString()),jwtToken, CommConst.EXPIRED_TIME);
             //最后：返回首页面，通过路径传递token字符串
             return REDIRECT_URL + jwtToken;
         }catch(Exception e) {
             log.error("登录失败,{}",e);
-            return "redirect:http://localhost/";
+            return "redirect:http://47.103.155.11/";
         }
     }
 
@@ -150,10 +150,10 @@ public class AdminController {
         //查询数据库根据用户id获取用户信息
         TUser member = userservice.getById(memberId);
         //验证token是否过期
-        String redisToken = (String)cacheComponent.get(CacheKey.LOAN_USER_LOGIN_TOKEN.getKey(member.getId().toString()));
+        String redisToken = (String)cacheComponent.get(CacheKey.BLOG_USER_LOGIN_TOKEN.getKey(member.getId().toString()));
         //把用户信息存入redis
         if (CommUtils.isNull(redisToken)) return R.error().message(ResultMsg.LOGINH_HAS_EXPIRED).code(401);
-        cacheComponent.add(CacheKey.LOAN_USER_LOGIN_TOKEN_USER.getKey(token),member,CommConst.EXPIRED_TIME);
+        cacheComponent.add(CacheKey.BLOG_USER_LOGIN_TOKEN_USER.getKey(token),member,CommConst.EXPIRED_TIME);
         log.info("TUser====> {}", JSON.toJSONString(member));
         return R.ok(member);
     }

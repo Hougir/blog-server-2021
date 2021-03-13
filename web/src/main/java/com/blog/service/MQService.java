@@ -49,7 +49,7 @@ public class MQService {
         //SmsResult result = smsAPI.send(smsMsg.getAppkey(),smsMsg.getMobile(),smsMsg.getContent());
         //log.info("发送结果===> {}",JSON.toJSONString(result));
         //发送成功，存入redis
-        Boolean b = cacheComponent.add(CacheKey.LOAN_USER_SMS_CODE_LOGIN.getKey(sms.getPhone()), sms.getContent(), CommConst.SMS_EXPIRED_TIME);
+        Boolean b = cacheComponent.add(CacheKey.BLOG_USER_SMS_CODE_LOGIN.getKey(sms.getPhone()), sms.getContent(), CommConst.SMS_EXPIRED_TIME);
         if (!b) return false;
         return true;
     }
