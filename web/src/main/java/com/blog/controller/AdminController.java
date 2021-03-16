@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 @Api(description = "博客后台管理")
 public class AdminController {
 
-    static final String REDIRECT_URL = "redirect:http://www.yellowhao.top/#/admin/wx/";
+    static final String REDIRECT_URL = "redirect:http://blog.yellowhao.top/#/admin/wx/";
 
     static final String REGEXP = "^((13[0-9])|(15[^4,\\D])|(18[0,3-9]))\\d{8}$";
     @Autowired
@@ -136,7 +136,7 @@ public class AdminController {
             return REDIRECT_URL + jwtToken;
         }catch(Exception e) {
             log.error("登录失败,{}",e);
-            return "redirect:http://www.yellowhao.top/";
+            return "redirect:http://blog.yellowhao.top/";
         }
     }
 
