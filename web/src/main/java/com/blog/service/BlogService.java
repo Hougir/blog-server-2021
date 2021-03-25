@@ -24,6 +24,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 
 import javax.persistence.criteria.Predicate;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -234,5 +235,13 @@ public class BlogService {
         commentRepository.saveAll(comments);
         commentRepository.deleteById(id);
         return R.ok();
+    }
+
+    public static void main(String[] args) {
+        //SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        //String format = simpleDateFormat.format(new Date());
+        String format = DateUtil.formatDate(new Date(),DateUtil.FMT2);
+
+        System.out.println(format);
     }
 }
