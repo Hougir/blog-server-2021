@@ -1,7 +1,6 @@
 package com.blog.service;
 
 import com.alibaba.fastjson.JSON;
-import com.blog.domain.bo.BlogBo;
 import com.blog.domain.bo.CommentBo;
 import com.blog.domain.entity.Comment;
 import com.blog.domain.entity.TBlog;
@@ -11,7 +10,6 @@ import com.blog.enums.ResultMsg;
 import com.blog.mapper.BlogReponsitory;
 import com.blog.mapper.CommentRepository;
 import com.blog.util.*;
-import com.netflix.hystrix.contrib.javanica.utils.CommonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +17,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 
@@ -29,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -240,8 +239,9 @@ public class BlogService {
     public static void main(String[] args) {
         //SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         //String format = simpleDateFormat.format(new Date());
-        String format = DateUtil.formatDate(new Date(),DateUtil.FMT2);
-
-        System.out.println(format);
+        //String format = DateUtil.formatDate(new Date(),DateUtil.FMT2);
+        Function<String,String> f = s -> s+"666";
+        java.util.function.Predicate<String> p = s -> s.isEmpty();
+        System.out.println(p.test("555"));
     }
 }
