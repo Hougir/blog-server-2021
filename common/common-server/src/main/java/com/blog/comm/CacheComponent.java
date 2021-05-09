@@ -1,5 +1,6 @@
 package com.blog.comm;
 
+import com.alibaba.fastjson.JSONObject;
 import com.blog.exception.CacheException;
 import com.blog.util.CommUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -288,6 +289,7 @@ public class CacheComponent {
                     } else {
                         redisTemplate.opsForValue().set(key, t, time, timeUnit);
                     }
+                    log.info("添加缓存成功,key = {}, value = {}",key, JSONObject.toJSONString(t));
                 } catch (Exception ex){
                     log.error("添加缓存异常, key = {}, ex = {}", key, ex);
                 }

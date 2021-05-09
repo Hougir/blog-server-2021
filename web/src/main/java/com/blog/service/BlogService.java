@@ -1,6 +1,8 @@
 package com.blog.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.blog.comm.CacheComponent;
 import com.blog.domain.bo.CommentBo;
 import com.blog.domain.entity.Comment;
 import com.blog.domain.entity.TBlog;
@@ -16,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,12 +48,28 @@ public class BlogService {
     @Autowired
     private CommentRepository commentRepository;
 
+    @Autowired
+    CacheComponent cacheComponent;
 
     public PageVo<BlogVo> findAllAndPage(PageBo<TBlog> pageBo,String token) {
-
         String process = "业务层处理";
         log.info("{} 入参：body={}", process, JSON.toJSONString(pageBo));
-        Page<TBlog> all = blogReponsitory.findAll((r, cq, cb) ->{
+        Page<TBlog> all = (Page<TBlog>)cacheComponent.getOrSet("BLOD:PAGE:LIST",()->{
+            Page<TBlog> blogs = blogReponsitory.findAll((r, cq, cb) -> {
+                List<Predicate> predicates = new ArrayList<>();
+                if (!StringUtils.isEmpty(pageBo.getParam().getTitle()))
+                    predicates.add(cb.like(r.get("title").as(String.class), "%" + pageBo.getParam().getTitle() + "%"));
+                //cq.orderBy(cb.desc(r.get("id")));
+                if (StringUtils.isEmpty(token)) {
+                    predicates.add(cb.equal(r.get("published").as(Boolean.class), true));
+                }
+                cq.orderBy(cb.desc(r.get("updateTime")));
+                Predicate[] pred = new Predicate[predicates.size()];
+                return cb.and(predicates.toArray(pred));
+            }, PageRequest.of(pageBo.getPage() - 1, pageBo.getSize()));
+            return blogs;
+        },30);
+        /*Page<TBlog> all = blogReponsitory.findAll((r, cq, cb) ->{
             List<Predicate> predicates = new ArrayList<>();
             if (!StringUtils.isEmpty(pageBo.getParam().getTitle())) predicates.add(cb.like(r.get("title").as(String.class),"%" + pageBo.getParam().getTitle() +"%"));
             //cq.orderBy(cb.desc(r.get("id")));
@@ -59,7 +79,7 @@ public class BlogService {
             cq.orderBy(cb.desc(r.get("updateTime")));
             Predicate[] pred = new Predicate[predicates.size()];
             return cb.and(predicates.toArray(pred));
-        }, PageRequest.of(pageBo.getPage() - 1, pageBo.getSize()));
+        }, PageRequest.of(pageBo.getPage() - 1, pageBo.getSize()));*/
         //log.info("{} 出参：all={}", process, JSON.toJSONString(all));
         PageVo<BlogVo> pageVo = new PageVo<>();
         pageVo.setPage(all.getTotalPages());
