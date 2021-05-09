@@ -54,7 +54,7 @@ public class BlogService {
     public PageVo<BlogVo> findAllAndPage(PageBo<TBlog> pageBo,String token) {
         String process = "业务层处理";
         log.info("{} 入参：body={}", process, JSON.toJSONString(pageBo));
-        Page<TBlog> all = (Page<TBlog>)cacheComponent.getOrSet("BLOD:PAGE:LIST",()->{
+        /*Page<TBlog> all = (Page<TBlog>)cacheComponent.getOrSet("BLOD:PAGE:LIST",()->{
             Page<TBlog> blogs = blogReponsitory.findAll((r, cq, cb) -> {
                 List<Predicate> predicates = new ArrayList<>();
                 if (!StringUtils.isEmpty(pageBo.getParam().getTitle()))
@@ -68,8 +68,8 @@ public class BlogService {
                 return cb.and(predicates.toArray(pred));
             }, PageRequest.of(pageBo.getPage() - 1, pageBo.getSize()));
             return blogs;
-        },30);
-        /*Page<TBlog> all = blogReponsitory.findAll((r, cq, cb) ->{
+        },30);*/
+        Page<TBlog> all = blogReponsitory.findAll((r, cq, cb) ->{
             List<Predicate> predicates = new ArrayList<>();
             if (!StringUtils.isEmpty(pageBo.getParam().getTitle())) predicates.add(cb.like(r.get("title").as(String.class),"%" + pageBo.getParam().getTitle() +"%"));
             //cq.orderBy(cb.desc(r.get("id")));
@@ -79,7 +79,7 @@ public class BlogService {
             cq.orderBy(cb.desc(r.get("updateTime")));
             Predicate[] pred = new Predicate[predicates.size()];
             return cb.and(predicates.toArray(pred));
-        }, PageRequest.of(pageBo.getPage() - 1, pageBo.getSize()));*/
+        }, PageRequest.of(pageBo.getPage() - 1, pageBo.getSize()));
         //log.info("{} 出参：all={}", process, JSON.toJSONString(all));
         PageVo<BlogVo> pageVo = new PageVo<>();
         pageVo.setPage(all.getTotalPages());
