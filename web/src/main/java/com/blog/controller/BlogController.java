@@ -16,6 +16,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ import java.util.List;
 @Api(description = "博客列表控制器")
 @CrossOrigin(origins = "*",maxAge = 3600)
 @RestController
+@RefreshScope
 @RequestMapping("/api")
 public class BlogController {
 

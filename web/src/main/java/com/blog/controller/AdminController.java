@@ -14,6 +14,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +32,7 @@ import java.util.regex.Pattern;
 @Slf4j
 @CrossOrigin(origins = "*",maxAge = 3600)
 @Controller
+@RefreshScope
 @Api(description = "博客后台管理")
 public class AdminController {
 

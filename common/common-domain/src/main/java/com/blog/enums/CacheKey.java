@@ -42,6 +42,8 @@ public enum CacheKey {
     USER_CARD_INFO("MER:USER:CARD:%s"), // 卡信息
     USER_CONTACTS_INFO("MER:USER:CONTACTS:%s"), // 联系人信息
 
+    BLOG_PAGE_LIST("blog:page:list"),
+    BLOG_PAGE_SETNX("blog:page:setnx"),
     /**
      * SMS 模块缓存
      */

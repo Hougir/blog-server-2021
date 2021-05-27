@@ -1,33 +1,42 @@
 package com.blog.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.blog.domain.bo.BlogBo;
 import com.blog.domain.bo.CommentBo;
 import com.blog.domain.entity.Comment;
 import com.blog.domain.entity.TBlog;
 import com.blog.domain.vo.BlogVo;
 import com.blog.domain.vo.CommentVo;
+import com.blog.enums.CacheKey;
 import com.blog.enums.ResultMsg;
 import com.blog.mapper.BlogReponsitory;
 import com.blog.mapper.CommentRepository;
 import com.blog.util.*;
-import com.netflix.hystrix.contrib.javanica.utils.CommonUtils;
+//import com.netflix.hystrix.contrib.javanica.utils.CommonUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 
 import javax.persistence.criteria.Predicate;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -44,46 +53,96 @@ public class BlogService {
     @Autowired
     private CommentRepository commentRepository;
 
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     public PageVo<BlogVo> findAllAndPage(PageBo<TBlog> pageBo,String token) {
-
         String process = "业务层处理";
         log.info("{} 入参：body={}", process, JSON.toJSONString(pageBo));
-        Page<TBlog> all = blogReponsitory.findAll((r, cq, cb) ->{
-            List<Predicate> predicates = new ArrayList<>();
-            if (!StringUtils.isEmpty(pageBo.getParam().getTitle())) predicates.add(cb.like(r.get("title").as(String.class),"%" + pageBo.getParam().getTitle() +"%"));
-            //cq.orderBy(cb.desc(r.get("id")));
-            if (StringUtils.isEmpty(token)){
-                predicates.add(cb.equal(r.get("published").as(Boolean.class), true));
-            }
-            cq.orderBy(cb.desc(r.get("updateTime")));
-            Predicate[] pred = new Predicate[predicates.size()];
-            return cb.and(predicates.toArray(pred));
-        }, PageRequest.of(pageBo.getPage() - 1, pageBo.getSize()));
-        //log.info("{} 出参：all={}", process, JSON.toJSONString(all));
         PageVo<BlogVo> pageVo = new PageVo<>();
-        pageVo.setPage(all.getTotalPages());
-        pageVo.setSize(all.getSize());
-        pageVo.setTotal(all.getTotalElements());
-        pageVo.setHasNextPage(all.hasNext());
-        List<BlogVo> reslut = all.getContent().stream().map(c-> {
-            BlogVo blogVo = new BlogVo();
-            blogVo.setId(c.getId());
-            blogVo.setTop(c.getIsTop());
-            blogVo.setBanner(c.getBanner());
-            blogVo.setHot(c.getIsHot());
-            blogVo.setPubTime(DateUtil.formatDate(c.getUpdateTime(),DateUtil.FMT2));
-            blogVo.setTitle(c.getTitle());
-            blogVo.setSummary(c.getSummary());
-            blogVo.setContent(c.getContent());
-            blogVo.setViewsCount(c.getViewsCount());
-            blogVo.setCommentsCount(c.getCommentsCount());
-            return blogVo;
+        //如果是第一页，先从redis获取，没有再查db放入redis
+        String json = null;
+        try {
+            json = (String)stringRedisTemplate.opsForHash().get(CacheKey.BLOG_PAGE_LIST.getKey(), "one");
+        } catch (Exception e) {
+            log.error("缓存获取失败===>{}",e);
+        }
+        List<TBlog> blogList = JSONObject.parseObject(json, new TypeReference<List<TBlog>>(){});
+        //Page<TBlog> all = json2Object(blogsJson,new TypeReference<Page<TBlog>>(){});
+        if (CollectionUtils.isEmpty(blogList)){
+            //并发枪锁
+            Boolean setNx = null;
+            try {
+                setNx = stringRedisTemplate.opsForValue().setIfAbsent(CacheKey.BLOG_PAGE_SETNX.getKey(), "lock", 10, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                log.error("redis枪锁失败：{}",e);
+            }
+            //枪锁成功
+            if (setNx){
+                Page<TBlog> all = blogReponsitory.findAll((r, cq, cb) ->{
+                    List<Predicate> predicates = new ArrayList<>();
+                    if (!StringUtils.isEmpty(pageBo.getParam().getTitle())) predicates.add(cb.like(r.get("title").as(String.class),"%" + pageBo.getParam().getTitle() +"%"));
+                    //cq.orderBy(cb.desc(r.get("id")));
+                    if (StringUtils.isEmpty(token)){
+                        predicates.add(cb.equal(r.get("published").as(Boolean.class), true));
+                    }
+                    cq.orderBy(cb.desc(r.get("updateTime")));
+                    Predicate[] pred = new Predicate[predicates.size()];
+                    return cb.and(predicates.toArray(pred));
+                }, PageRequest.of(pageBo.getPage() - 1, pageBo.getSize()));
+                pageVo.setPage(all.getTotalPages());
+                pageVo.setSize(all.getSize());
+                pageVo.setTotal(all.getTotalElements());
+                pageVo.setHasNextPage(all.hasNext());
+                blogList = all.getContent();
+                //首页放入redis
+                if (pageBo.getPage() == 1 && all.getContent().size() > 0){
+                    try {
+                        stringRedisTemplate.opsForHash().put(CacheKey.BLOG_PAGE_LIST.getKey(),"one",JSONObject.toJSONString(all.getContent()));
+                    } catch (Exception e) {
+                        log.error("加入redis失败,{}",e);
+                    }
+                    log.info("加入redis成功");
+                }
+            }else {
+                //枪锁失败
+                try {
+                    Thread.sleep(500);
+                    //重新获取redis数据
+                    this.findAllAndPage(pageBo,token);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        List<BlogVo> blogVos = blogList.stream().map(c-> {
+                    BlogVo blogVo = new BlogVo();
+                    blogVo.setId(c.getId());
+                    blogVo.setTop(c.getIsTop());
+                    blogVo.setBanner(c.getBanner());
+                    blogVo.setHot(c.getIsHot());
+                    blogVo.setPubTime(DateUtil.formatDate(c.getUpdateTime(),DateUtil.FMT2));
+                    blogVo.setTitle(c.getTitle());
+                    blogVo.setSummary(c.getSummary());
+                    blogVo.setContent(c.getContent());
+                    blogVo.setViewsCount(c.getViewsCount());
+                    blogVo.setCommentsCount(c.getCommentsCount());
+                    return blogVo;
                 }
         ).filter(c-> CommUtils.isNotNull(c)).collect(Collectors.toList());
-        pageVo.setItems(reslut);
+        pageVo.setItems(blogVos);
+        //log.info("{} 出参：all={}", process, JSON.toJSONString(all));
         //log.info("{} 最终结果：body={}", process, JSON.toJSONString(pageVo));
         return pageVo;
+    }
+    /**
+     * JSON转Object对象
+     */
+    public static <T> Page<T> json2Object2(String json, TypeReference<Page<T>> typeReference) {
+        return JSON.parseObject(json,typeReference);
+    }
+    private Page<TBlog> json2Object(String blogsJson, TypeReference<Page<TBlog>> pageTypeReference) {
+        return JSONObject.parseObject(blogsJson,pageTypeReference);
     }
 
     public BlogVo getBlogById(Long id) {
