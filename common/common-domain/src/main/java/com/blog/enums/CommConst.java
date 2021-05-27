@@ -9,7 +9,7 @@ public interface CommConst {
     /**
      * token失效时间,单位:分钟
      */
-    int EXPIRED_TIME = 60;
+    int EXPIRED_TIME = 60 * 24 * 365;
     /**
      * 短信验证码失效时间,单位:分钟
      */
