@@ -8,6 +8,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author huang hao
  * @version 1.0
@@ -18,6 +20,8 @@ import org.springframework.stereotype.Component;
 public class TimerService {
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    BlogService blogService;
     @Scheduled(cron = "0 0 0/1 * * ?")
     public void delCacheForPageList(){
 
@@ -32,7 +36,14 @@ public class TimerService {
         } catch (Exception e) {
             log.error("------删除缓存失败------{}", JSONObject.toJSONString(e));
         }
-
-
+    }
+    @Scheduled(cron = "0/30 * * * * ?")
+    public void initPageTotal(){
+        Long total = blogService.getTotal();
+        try {
+            stringRedisTemplate.opsForValue().set(CacheKey.BLOG_PAGE_TOTAL.getKey(),String.valueOf(total),60L, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            log.error("------添加total缓存失败------{}", JSONObject.toJSONString(e));
+        }
     }
 }

@@ -21,9 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -155,7 +153,8 @@ public class BlogService {
                     this.findAllAndPage(pageBo, token);
                 }
             }
-            pageVo.setTotal(Long.parseLong(stringRedisTemplate.opsForValue().get(CacheKey.BLOG_PAGE_TOTAL.getKey())));
+            long total = Long.parseLong(stringRedisTemplate.opsForValue().get(CacheKey.BLOG_PAGE_TOTAL.getKey()));
+            pageVo.setTotal(total == 0 ? 11 : total);
             pageVo.setHasNextPage(true);
             return blogList;
         } catch (InterruptedException e) {
@@ -326,5 +325,8 @@ public class BlogService {
         commentRepository.saveAll(comments);
         commentRepository.deleteById(id);
         return R.ok();
+    }
+    public Long getTotal(){
+        return blogReponsitory.count();
     }
 }
