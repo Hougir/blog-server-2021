@@ -35,6 +35,7 @@ public class BlogController {
     @ApiOperation(value = "条件查询带分页",produces = "application/json; charset=utf-8")
     @PostMapping("/post/list")
     public R list(@RequestBody PageBo<TBlog> pageBo,@RequestHeader(value = "token",required = false)String token){
+        long start = System.currentTimeMillis();
         String process = "条件查询带分页";
         log.info("{} 入参：body={},token={}", process, JSON.toJSONString(pageBo),token);
         PageVo<BlogVo> page;
@@ -43,6 +44,8 @@ public class BlogController {
         } catch (Exception e) {
             return R.error().message("请稍后再试");
         }
+        long time = System.currentTimeMillis() - start;
+        log.info("{}耗时{}毫秒",process,time);
         //log.info("{} 出参：body={}", process, JSON.toJSONString(page));
         return R.ok(page);
     }

@@ -13,6 +13,7 @@ import com.blog.mapper.UserRepository;
 import com.blog.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,8 @@ public class Userservice {
 
     @Autowired
     private MQService mqService;
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     public TUser getByOpenid(String openid) {
         return userRepository.findByOpenid(openid);
@@ -82,6 +85,8 @@ public class Userservice {
         //删除用户
         Boolean b = cacheComponent.remove(CacheKey.BLOG_USER_LOGIN_TOKEN_USER.getKey(token));
         if (!b) return R.error().message(ResultMsg.FAILED_TO_DELETE_USER_INFORMATION);
+        //刷新缓存数据
+        stringRedisTemplate.opsForHash().delete(CacheKey.BLOG_PAGE_LIST.getKey(), "ten");
         log.info("logout====> 成功");
         return R.ok();
     }
