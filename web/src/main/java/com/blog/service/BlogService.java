@@ -62,11 +62,11 @@ public class BlogService {
         PageVo<BlogVo> pageVo = new PageVo<>();
         List<BlogVo> blogVos;
         List<TBlog> blogList;
-        if (null == pageBo || null == pageBo.getPage() || pageBo.getPage() < 1) {
+        if (null == pageBo || null == pageBo.getPage() || pageBo.getPage() < 1 || pageBo.getSize() < 10) {
             pageBo = PageBo.init(pageBo);
         }
-        //如果是第一页，先从redis获取，没有再查db放入redis
-        if (pageBo.getPage() == 1) {
+        //如果只获取10条数据先从redis获取，没有再查db放入redis
+        if (pageBo.getSize() == 10){
             blogList = getDataForCache(pageBo, token, pageVo);
         } else {
             blogList = getDataForDb(pageBo, token, pageVo);
@@ -114,7 +114,7 @@ public class BlogService {
 
     private List<TBlog> getDataForCache(PageBo<TBlog> pageBo, String token, PageVo<BlogVo> pageVo) {
         try {
-            String json = (String) stringRedisTemplate.opsForHash().get(CacheKey.BLOG_PAGE_LIST.getKey(), "one");
+            String json = (String) stringRedisTemplate.opsForHash().get(CacheKey.BLOG_PAGE_LIST.getKey(), "ten");
             List<TBlog> blogList = JSONObject.parseObject(json, new TypeReference<List<TBlog>>() {
             });
             //Page<TBlog> all = json2Object(blogsJson,new TypeReference<Page<TBlog>>(){});
@@ -143,7 +143,7 @@ public class BlogService {
                     blogList = all.getContent();
                     //首页放入redis
                     if (pageBo.getPage() == 1 && all.getContent().size() > 0) {
-                        stringRedisTemplate.opsForHash().put(CacheKey.BLOG_PAGE_LIST.getKey(), "one", JSONObject.toJSONString(all.getContent()));
+                        stringRedisTemplate.opsForHash().put(CacheKey.BLOG_PAGE_LIST.getKey(), "ten", JSONObject.toJSONString(all.getContent()));
                     }
                     log.info("首页放入redis成功");
                 } else {

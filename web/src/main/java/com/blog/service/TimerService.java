@@ -23,7 +23,7 @@ public class TimerService {
 
         Long delete = null;
         try {
-            delete = stringRedisTemplate.opsForHash().delete(CacheKey.BLOG_PAGE_LIST.getKey(), "one");
+            delete = stringRedisTemplate.opsForHash().delete(CacheKey.BLOG_PAGE_LIST.getKey(), "ten");
             if (delete == 1){
                 log.info("---删除缓存成功---");
             }else {
