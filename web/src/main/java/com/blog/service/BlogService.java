@@ -212,6 +212,8 @@ public class BlogService {
         blog.setUpdateTime(date);
         TBlog tBlog = blogReponsitory.saveAndFlush(blog);
         if (null == tBlog) return R.error().message(ResultMsg.SAVE_FAILED);
+        //刷新缓存
+        stringRedisTemplate.opsForHash().delete(CacheKey.BLOG_PAGE_LIST.getKey(), "ten");
         return R.ok();
     }
 
