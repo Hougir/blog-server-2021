@@ -44,6 +44,7 @@ public enum CacheKey {
 
     BLOG_PAGE_LIST("blog:page:list"),
     BLOG_PAGE_SETNX("blog:page:setnx"),
+    BLOG_PAGE_TOTAL("blog:page:total"),
     /**
      * SMS 模块缓存
      */

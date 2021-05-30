@@ -62,11 +62,11 @@ public class BlogService {
         PageVo<BlogVo> pageVo = new PageVo<>();
         List<BlogVo> blogVos;
         List<TBlog> blogList;
-        if (null == pageBo || null == pageBo.getPage() || pageBo.getPage() < 1 || pageBo.getSize() < 10) {
+        if (null == pageBo || pageBo.getPage() < 1 || pageBo.getSize() < 10) {
             pageBo = PageBo.init(pageBo);
         }
         //如果只获取10条数据先从redis获取，没有再查db放入redis
-        if (pageBo.getSize() == 10){
+        if (pageBo.getSize() == 10 && pageBo.getPage() == 1){
             blogList = getDataForCache(pageBo, token, pageVo);
         } else {
             blogList = getDataForDb(pageBo, token, pageVo);
@@ -109,6 +109,7 @@ public class BlogService {
         pageVo.setSize(all.getSize());
         pageVo.setTotal(all.getTotalElements());
         pageVo.setHasNextPage(all.hasNext());
+        stringRedisTemplate.opsForValue().set(CacheKey.BLOG_PAGE_TOTAL.getKey(),String.valueOf(pageVo.getTotal()),60L,TimeUnit.MINUTES);
         return all.getContent();
     }
 
@@ -143,6 +144,7 @@ public class BlogService {
                     blogList = all.getContent();
                     //首页放入redis
                     if (pageBo.getPage() == 1 && all.getContent().size() > 0) {
+                        stringRedisTemplate.opsForValue().set(CacheKey.BLOG_PAGE_TOTAL.getKey(),String.valueOf(pageVo.getTotal()),60L,TimeUnit.MINUTES);
                         stringRedisTemplate.opsForHash().put(CacheKey.BLOG_PAGE_LIST.getKey(), "ten", JSONObject.toJSONString(all.getContent()));
                     }
                     log.info("首页放入redis成功");
@@ -153,6 +155,8 @@ public class BlogService {
                     this.findAllAndPage(pageBo, token);
                 }
             }
+            pageVo.setTotal(Long.parseLong(stringRedisTemplate.opsForValue().get(CacheKey.BLOG_PAGE_TOTAL.getKey())));
+            pageVo.setHasNextPage(true);
             return blogList;
         } catch (InterruptedException e) {
             log.error("获取缓存失败，异常信息位：{}",e);

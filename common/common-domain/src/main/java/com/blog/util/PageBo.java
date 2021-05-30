@@ -29,7 +29,7 @@ public class PageBo<T> implements Serializable {
 		if(pageBo.getPage() == null || pageBo.getPage() < 1){
 			pageBo.setPage(1);
 		}
-		if(pageBo.getSize() == null || pageBo.getSize() < 0){
+		if(pageBo.getSize() == null || pageBo.getSize() <= 0){
 			pageBo.setSize(10);
 		}
 		return pageBo;
