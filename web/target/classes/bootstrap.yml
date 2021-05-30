@@ -1,3 +1,11 @@
+# 此处为自定义，配置中心和注册中心共同属性，下文引入即可
+nacos:
+  group: blog-server-2021-web
+  # 配置中心地址
+  # nacos 服务地址 nginx 代理的地址
+  server-addr: 47.103.155.11:8848
+  # 命名空间
+  namespace: prod
 #POD名称
 pod.name: ${POD_NAME:${random.int[1,999]}}
 
@@ -10,10 +18,24 @@ spring:
     name: blog-server-2021-web
   # dev:开发配置、test:测试配置、prod: 发布配置;
   profiles:
-    active: ${config.active:dev}
+    active: ${config.active:prod}
   main:
     allow-bean-definition-overriding: true
   cloud:
+    nacos:
+      config:
+        server-addr: ${nacos.server-addr}
+        file-extension: yaml
+        namespace: ${nacos.namespace}
+      discovery:
+        server-addr: ${nacos.server-addr}
+        namespace: ${nacos.namespace}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
 
 
 
@@ -27,10 +49,9 @@ logging.level.ROOT: INFO
 logging.level.org.springframework: WARN
 logging.level.springfox: WARN
 logging.level.com.netflix: WARN
-logging.level.com.saas.market: INFO
 logging.level.org.springframework.cloud.sleuth: INFO
 # 打印SQL
-logging.level.com.saas.market.comn.mapper: INFO
+logging.level.com.blog.mapper: INFO
 # 日志路径
 logging.file.path: /Users/admin/logs/backup
 logging.file.name: /Users/admin/logs/blog-server-2021/${spring.application.name}.log
