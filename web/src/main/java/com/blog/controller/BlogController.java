@@ -37,7 +37,12 @@ public class BlogController {
     public R list(@RequestBody PageBo<TBlog> pageBo,@RequestHeader(value = "token",required = false)String token){
         String process = "条件查询带分页";
         log.info("{} 入参：body={},token={}", process, JSON.toJSONString(pageBo),token);
-        PageVo<BlogVo> page = blogService.findAllAndPage(pageBo,token);
+        PageVo<BlogVo> page = null;
+        try {
+            page = blogService.findAllAndPage(pageBo,token);
+        } catch (Exception e) {
+            return R.error().message("请稍后再试");
+        }
         //log.info("{} 出参：body={}", process, JSON.toJSONString(page));
         return R.ok(page);
     }
