@@ -1,7 +1,6 @@
 package com.blog.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.blog.domain.bo.BlogBo;
 import com.blog.domain.bo.CommentBo;
 import com.blog.domain.entity.Comment;
 import com.blog.domain.entity.TBlog;
@@ -20,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 @Slf4j
 @Api(description = "博客列表控制器")
@@ -37,7 +35,8 @@ public class BlogController {
     @PostMapping("/post/list")
     public R list(@RequestBody PageBo<TBlog> pageBo,@RequestHeader(value = "token",required = false)String token){
         String process = "条件查询带分页";
-        StopWatch sw = StopWatch.createStarted();
+        StopWatch sw = new StopWatch();
+        sw.start();
         log.info("{} 入参：body={},token={}", process, JSON.toJSONString(pageBo),token);
         PageVo<BlogVo> page;
         try {

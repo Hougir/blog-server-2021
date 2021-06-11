@@ -53,8 +53,8 @@ logging.level.org.springframework.cloud.sleuth: INFO
 # 打印SQL
 logging.level.com.blog.mapper: INFO
 # 日志路径
-logging.file.path: /Users/admin/logs/backup
-logging.file.name: /Users/admin/logs/blog-server-2021/${spring.application.name}.log
+logging.file.path: /data/logs/backup
+logging.file.name: /data/logs/${spring.application.name}/app.log
 # 控制台的日志模式
 logging.pattern.console: '%d{yyyy-MM-dd HH:mm:ss} - [${spring.application.name:},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-Span-Export:-}] - %msg%n'
 # 日志记录模式文件
