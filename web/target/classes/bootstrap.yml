@@ -15,7 +15,7 @@ server:
 
 spring:
   application:
-    name: blog-server-2021-web
+    name: blog
   # dev:开发配置、test:测试配置、prod: 发布配置;
   profiles:
     active: ${config.active:prod}
@@ -41,9 +41,6 @@ management:
 
 # ===========================================================================================
 #日志配置
-logback.job.enable: true
-logback.job.cron: 0 0 2 * * ?
-logback.oss.path: blog-server-2021/web/logback
 #logging.config: https://wenewrs-oss-data.oss-cn-shanghai-internal.aliyuncs.com/config/logback.xml
 logging.level.ROOT: INFO
 logging.level.org.springframework: WARN
